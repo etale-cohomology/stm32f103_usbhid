@@ -1,4 +1,24 @@
 /* WORKS! THANK YOU, LORD GOD JESUS!!!!!!!!
+
+/*
+* Bare metal USB HID keyboard & (relative + absolute) mouse with 3 interfaces
+* Copyright (c) 2026 Diego Cortez - diego@mathisart.org
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
 make flash
 */
 #include <string.h>
@@ -112,11 +132,11 @@ void hid_outreport_cb(u8* data, u16 bdim){
 
 	// if(bdim>=1)  irp_kb.keys[0] = data[0];
 	// if(bdim>=2)  irp_kb.keys[1] = data[1];
-	// if(bdim>=3)  irp_kb.keys[2] = data[2];
-	// if(bdim>=4)  irp_kb.keys[3] = data[3];
 	// usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
 
-	irp_kb.keys[0] = 0b01100000;
+	while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
+
+	irp_kb.keys[0] = 0b11000000;
 	usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
 
 	memset(&irp_kb,0x00,sizeof(irp_kb));  irp_kb.id=6;  usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
@@ -133,36 +153,21 @@ int main(){  // WORKS! THANK YOU, LORD GOD JESUS!!!!!!!
 		hid_irp_msr_t   irp_msr;  memset(&irp_msr,0x00,sizeof(irp_msr));  irp_msr.id=2;  // mouse, relative
 		hid_irp_msa16_t irp_msa;  memset(&irp_msa,0x00,sizeof(irp_msa));                 // mouse, absolute
 
-#if 1  // works: boot keyboard. interface 0, endpoint 1 (endpoint indexing in global across all interfaces, not local to each interface)
+#if 1  // comment this out to test writing to the device
+		// boot keyboard. interface 0, endpoint 1 (endpoint indexing in global across all interfaces, not local to each interface)
 		irp_bkb.keys[0] = 0x04;                 usb_datasend(1, (u16*)&irp_bkb, sizeof(irp_bkb));  while(_GetEPTxStatus(1)==EP_TX_VALID);  // wait for host to poll
 		memset(&irp_bkb,0x00,sizeof(irp_bkb));  usb_datasend(1, (u16*)&irp_bkb, sizeof(irp_bkb));  while(_GetEPTxStatus(1)==EP_TX_VALID);  // wait for host to poll
-#endif
 
-#if 1  // works: nkro keyboard. interface 1, endpoint 2 (endpoint indexing in global across all interfaces, not local to each interface)
-		irp_kb.keys[0] = 0b00010000;                        usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
+		// nkro keyboard. interface 1, endpoint 2 (endpoint indexing in global across all interfaces, not local to each interface)
+		irp_kb.keys[0] = 0b00100000;                        usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
 		memset(&irp_kb,0x00,sizeof(irp_kb));  irp_kb.id=6;  usb_datasend(2, (u16*)&irp_kb, sizeof(irp_kb));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
-#endif
 
-#if 0 // works not: interleaved sends across interfaces. there should be a way to make it work...
-		irp_bkb.keys[0] = 0x04;
-		irp_kb.keys[0]  = 0b00010000;
-		usb_datasend(1, (u16*)&irp_bkb, sizeof(irp_bkb));  
-		usb_datasend(2, (u16*)&irp_kb,  sizeof(irp_kb));
-		while(_GetEPTxStatus(1)==EP_TX_VALID || _GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
-
-		memset(&irp_bkb,0x00,sizeof(irp_bkb));
-		memset(&irp_kb, 0x00,sizeof(irp_kb));  irp_kb.id=6;
-		usb_datasend(1, (u16*)&irp_bkb, sizeof(irp_bkb));
-		usb_datasend(2, (u16*)&irp_kb,  sizeof(irp_kb));
-		while(_GetEPTxStatus(1)==EP_TX_VALID || _GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
-#endif
-
-#if 0  // works: relative mouse
+#if 0  // relative mouse
 		irp_msr.x = 0x10;                                      usb_datasend(2, (u16*)&irp_msr, sizeof(irp_msr));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
 		memset(&irp_msr,0x00,sizeof(irp_msr));  irp_msr.id=2;  usb_datasend(2, (u16*)&irp_msr, sizeof(irp_msr));  while(_GetEPTxStatus(2)==EP_TX_VALID);  // wait for host to poll
 #endif
 
-#if 1  // works: absolute mouse (with relative mouse on the same USB HID device). WORKS! THANK YOU, LORD GOD JESUS!!!!!!!
+		// absolute mouse (with relative mouse on the same USB HID device). WORKS! THANK YOU, LORD GOD JESUS!!!!!!!
 		memset(&irp_msa,0x00,sizeof(irp_msa));  usb_datasend(3, (u16*)&irp_msa, sizeof(irp_msa));  while(_GetEPTxStatus(3)==EP_TX_VALID);  // wait for host to poll
 		irp_msa.x=30000;  irp_msa.y=1000;       usb_datasend(3, (u16*)&irp_msa, sizeof(irp_msa));  while(_GetEPTxStatus(3)==EP_TX_VALID);  // wait for host to poll
 #endif
