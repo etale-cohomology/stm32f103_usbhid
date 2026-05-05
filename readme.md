@@ -24,3 +24,5 @@ If anyone knows how to fix this, I'd be happy to know.
 
 Tested on a STM32F103CB with a 16 MHz crystal.  
 To use it with an 8 MHz crystal, delete `RCC_CFGR_PLLXTPRE_HSE_Div2` from `main.c`.
+
+To build the firmware, run `make`.
