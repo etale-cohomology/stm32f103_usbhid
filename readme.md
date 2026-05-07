@@ -14,9 +14,9 @@ In this example,
 - interface 1 (endpoint 2) has an NKRO keyboard and a relative mouse
 - interface 2 (endpoint 3) has an absolute mouse (INPUT) and an OUTPUT buffer (for the host to send data to the device).
 
-Of course, there's also an IN and OUT endpoint 0.
+Of course, there's also endpoint 0 IN and endpoint 0 OUT.
 
-After you flash the firmware into your device and connect to the the host, every second it'll send an 'a' keypress via endpoint 1, a 'b' keypress via endpoint 2, and an absolute mouse command via endpoint 3.
+After you flash the firmware into your device and connect to the host, every second it'll send an 'a' keypress via endpoint 1, a 'b' keypress via endpoint 2, and an absolute mouse command via endpoint 3.
 
 If you write data to the device, it'll send a 'cd' keypress (see `hidwrite.py`).  
 For some reason, it doesn't work well if the device is sending data (as in the previous paragraph), so comment out that part in `main.c` to test writing to the device.  
